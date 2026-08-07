@@ -320,11 +320,11 @@ xcalibur = function(instrument, ID, method, numSamples, techReps, numPools, Star
     # Plate structure
     if (instrument == "Astral") {
       plates <- c("R", "Y", "B", "G")
-      rows   <- LETTERS[2:6]  # B-F (skip A)
+      rows   <- LETTERS[1:6]  # A-F
       cols   <- 1:9
     } else {
       plates <- c("R", "G", "B")
-      rows   <- LETTERS[2:5]  # B-E
+      rows   <- LETTERS[1:5]  # A-E
       cols   <- 1:8
     }
     
@@ -332,13 +332,21 @@ xcalibur = function(instrument, ID, method, numSamples, techReps, numPools, Star
     sample_positions <- c()
     
     for (p in plates) {
-      for (r in rows) {
+      
+      plate_rows <- if (p == "R") {
+        rows[-1]     # remove A from red only
+      } else {
+        rows
+      }
+      
+      for (r in plate_rows) {
         for (c in cols) {
-          sample_positions <- c(sample_positions, format_pos(p, r, c))
+          sample_positions <- c(sample_positions,
+                                format_pos(p, r, c))
         }
       }
     }
-    
+  
     start_idx <- match(StartingVialPosition, sample_positions)
     
     if (is.na(start_idx)) {
