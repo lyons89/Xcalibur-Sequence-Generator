@@ -10,12 +10,40 @@ library(markdown)
 
 # Functions
 
-xcalibur = function(instrument, ID, method, numSamples, techReps, numPools, StartingVialPosition, Inj_Vol,
+xcalibur = function(ID, method, numSamples, techReps, numPools, StartingVialPosition, Inj_Vol,
                     conditions = NULL,   # NEW ARG
                     randomize = c("None", "All", "Block"), 
                     comment = NULL){
   
   randomize <- match.arg(randomize)
+  
+  # split method
+  
+  sep = strsplit(method, "-")[[1]]
+  
+  instrument = sep[1]
+  
+  method2 = sep[2]
+  
+  # -----Select sample method -----
+  if(method == "Astral-DIA"){
+    sample_method = "C:\\Xcalibur\\methods\\Neo\\DIA_3mz_IO25cm_30min"
+  }
+  if(method == "Astral-DDA"){
+    sample_method = "C:\\Xcalibur\\methods\\Neo\\DDA\\DDA_0,6s_MS1-300AGC-5ms_IO25cm_30min"
+  }
+  if(method == "OE480-DDA"){
+    sample_method = "C:\\Xcalibur\\methods\\DDA Global\\PC-DDA_2s_90min"
+  }
+  
+  # ----- Select blank method -----
+  
+  if(instrument == "Astral"){
+    blank_method = "C:\\Xcalibur\\methods\\Neo\\FullScan_IO25cm_15min"
+  }
+  if(instrument == "OE480"){
+    blank_method = "C:\\Xcalibur\\methods\\Blanks&Standards\\Blank-DDA_UDP_flush_NB"
+  }
   
   # ----- Column selection -----
   if(instrument == "Astral"){
@@ -46,7 +74,7 @@ xcalibur = function(instrument, ID, method, numSamples, techReps, numPools, Star
   }  
   
   # ----- Base names -----
-  base_name = paste(date, instrument, column, ID, method, sep = "_")
+  base_name = paste(date, instrument, column, ID, method2, sep = "_")
   
   samp_ids = seq_len(numSamples)
   
@@ -148,7 +176,7 @@ xcalibur = function(instrument, ID, method, numSamples, techReps, numPools, Star
   pool_base_names <- character(0)
   
   if (numPools >= 1) {
-    pool_name <- paste(date, instrument, column, ID, method, "pool", sep = "_")
+    pool_name <- paste(date, instrument, column, ID, method2, "Pool", sep = "_")
     pool_base_names <- paste0(pool_name, "_R", seq_len(numPools))
   }
   
@@ -232,10 +260,6 @@ xcalibur = function(instrument, ID, method, numSamples, techReps, numPools, Star
     # If exactly 2 pools:
     # Pool 1 at beginning, Pool 2 at end
     if (numPools == 2) {
-      
-      out <- c(out,
-               pool_base_names[1],
-               make_blank())
       
       out <- append_samples_with_block_blanks(out, 1, n_samples)
       
@@ -414,10 +438,17 @@ xcalibur = function(instrument, ID, method, numSamples, techReps, numPools, Star
   # ----- Output -----
   path = paste0("D:\\", format(Sys.Date(), "%Y_%m_%B"))
   
+  # Create method assignment vector
+  inst_methods <- ifelse(
+    grepl("blank", out, ignore.case = TRUE),
+    blank_method,
+    sample_method
+  )
+  
   df = tibble(
     `File Name` = out,
     Path = path,
-    `Inst Meth` = NA_real_,
+    `Inst Meth` = inst_methods,
     Position = positions,
     `Inj Vol` = rep(Inj_Vol, length(out)),
     Comment = comment
@@ -431,9 +462,9 @@ ui <- navbarPage("Xcalibur Sequence Generator",
                  tabPanel("Sample Information",
                           sidebarPanel(
                             h3("Input Sample Information"),
-                            radioButtons("Instrument", label = "Select Instrument:", choices = c("Astral", "OE480"), selected = "Astral"),
                             textInput("uniqueID", label = "Input Unique Identifier:", value = ""),
-                            radioButtons("Method", label = "Select Method:", choices = c("DIA", "DDA", "PRM"), selected = "DIA"),
+                            radioButtons("Method", label = "Select Method:", 
+                                         choices = c("Astral-DIA", "Astral-DDA", "OE480-DDA"), selected = "Astral-DIA"),
                             numericInput("nSamples", label = "Number of Samples (not including pools)", value = 2, min = 2),
                             numericInput("nTechReps", label = "Number of technical injections (0 = none):", value = 0, min = 2),
                             numericInput("nPools", label = "Number of Pools:", value = 0, min = 2),
@@ -462,8 +493,7 @@ server <- function(input, output, session){
   
   sequence_generator = eventReactive(input$GenerateSequence,{
     
-    seq = xcalibur(instrument = input$Instrument,
-                   ID = input$uniqueID,
+    seq = xcalibur(ID = input$uniqueID,
                    method = input$Method,
                    numSamples = input$nSamples,
                    techReps = input$nTechReps,
