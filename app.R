@@ -463,7 +463,7 @@ ui <- navbarPage("Xcalibur Sequence Generator",
                           sidebarPanel(
                             h3("Input Sample Information"),
                             textInput("uniqueID", label = "Input Unique Identifier:", value = ""),
-                            radioButtons("Method", label = "Select Method:", 
+                            radioButtons("method", label = "Select Method:", 
                                          choices = c("Astral-DIA", "Astral-DDA", "OE480-DDA"), selected = "Astral-DIA"),
                             numericInput("nSamples", label = "Number of Samples (not including pools)", value = 2, min = 2),
                             numericInput("nTechReps", label = "Number of technical injections (0 = none):", value = 0, min = 2),
@@ -494,7 +494,7 @@ server <- function(input, output, session){
   sequence_generator = eventReactive(input$GenerateSequence,{
     
     seq = xcalibur(ID = input$uniqueID,
-                   method = input$Method,
+                   method = input$method,
                    numSamples = input$nSamples,
                    techReps = input$nTechReps,
                    numPools = input$nPools,
@@ -503,6 +503,28 @@ server <- function(input, output, session){
                    conditions = trimws(strsplit(input$conditions, "\n")[[1]]),
                    comment = input$comment,
                    randomize = input$Randomize)
+  })
+  
+  
+  observeEvent(input$method, {
+    
+    if (grepl("^Astral", input$method)) {
+      
+      updateSelectInput(
+        session,
+        "StartingVialPosition",
+        selected = "R:B1"
+      )
+      
+    } else {
+      
+      updateSelectInput(
+        session,
+        "StartingVialPosition",
+        selected = "RB1"
+      )
+      
+    }
   })
   
   DT = reactive({
