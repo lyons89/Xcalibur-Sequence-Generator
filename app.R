@@ -436,7 +436,7 @@ xcalibur = function(ID, method, numSamples, techReps, numPools, StartingVialPosi
   positions <- assign_positions(instrument, out, sample_names, pool_names, StartingVialPosition)
   
   # ----- Output -----
-  path = paste0("D:\\data", format(Sys.Date(), "%Y_%m_%B"))
+  path = paste0("D:\\data\\", format(Sys.Date(), "%Y_%m_%B"))
   
   # Create method assignment vector
   inst_methods <- ifelse(
