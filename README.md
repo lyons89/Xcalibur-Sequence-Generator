@@ -2,7 +2,10 @@
 
 A Shiny app for building and downloading sample-sequence tables for Thermo mass spectrometers. It creates sample and pool names, inserts blank runs, assigns vial positions, and selects instrument methods based on the chosen instrument and acquisition method. The downloaded CSV is formatted for import into an Xcalibur workflow, with a `Bracket Type=4` line before the table.
 
-> \*\*Important:\*\* Review each generated sequence and confirm that the methods, vial positions, injection volume, and run order match your instrument and laboratory SOP before using it. This app generates a sequence file; it does not connect to or control a mass spectrometer. This app was originally designed for use in the UNC Metabolomics and Proteomics Core Facility. 
+> \*\*Important:\*\* This app was originally designed for use in the UNC Metabolomics and Proteomics Core Facility. 
+
+> \*\*Important:\*\* Review each generated sequence and confirm that the methods, vial positions, injection volume, and run order match your instrument and laboratory SOP before using it. This app generates a sequence file; it does not connect to or control a mass spectrometer. 
+
 
 ## Features
 
